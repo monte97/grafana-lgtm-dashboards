@@ -32,35 +32,38 @@
       "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
     },
     {
-      "id": 2, "type": "stat", "title": "Firing Alerts",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "id": 2, "type": "alertlist", "title": "Firing Alerts",
       "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1},
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none", "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
-          "mappings": [{"type": "value", "options": {"0": {"text": "OK", "color": "green"}}}]
-        }, "overrides": []
-      },
-      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"firing\"}) or vector(0)", "legendFormat": "Firing"}]
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {"firing": true, "pending": false, "noData": false, "normal": false, "error": false},
+        "viewMode": "stat"
+      }
     },
     {
-      "id": 3, "type": "stat", "title": "Pending Alerts",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "id": 3, "type": "alertlist", "title": "Pending Alerts",
       "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1},
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none", "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}]}
-        }, "overrides": []
-      },
-      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"pending\"}) or vector(0)", "legendFormat": "Pending"}]
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {"firing": false, "pending": true, "noData": false, "normal": false, "error": false},
+        "viewMode": "stat"
+      }
     },
     {
       "id": 4, "type": "stat", "title": "Critical",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "datasource": {"type": "loki", "uid": "loki"},
       "gridPos": {"h": 4, "w": 4, "x": 8, "y": 1},
       "fieldConfig": {
         "defaults": {
@@ -69,11 +72,11 @@
         }, "overrides": []
       },
       "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"firing\",severity=\"critical\"}) or vector(0)", "legendFormat": "Critical"}]
+      "targets": [{"refId": "A", "datasource": {"type": "loki", "uid": "loki"}, "expr": "count_over_time({from=\"state-history\"} | json | current=\"Alerting\" | severity=\"critical\" [2m])", "legendFormat": "Critical", "queryType": "instant"}]
     },
     {
       "id": 5, "type": "stat", "title": "Warning",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "datasource": {"type": "loki", "uid": "loki"},
       "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1},
       "fieldConfig": {
         "defaults": {
@@ -82,11 +85,11 @@
         }, "overrides": []
       },
       "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"firing\",severity=\"warning\"}) or vector(0)", "legendFormat": "Warning"}]
+      "targets": [{"refId": "A", "datasource": {"type": "loki", "uid": "loki"}, "expr": "count_over_time({from=\"state-history\"} | json | current=\"Alerting\" | severity=\"warning\" [2m])", "legendFormat": "Warning", "queryType": "instant"}]
     },
     {
       "id": 6, "type": "stat", "title": "Info",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "datasource": {"type": "loki", "uid": "loki"},
       "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1},
       "fieldConfig": {
         "defaults": {
@@ -95,60 +98,60 @@
         }, "overrides": []
       },
       "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "auto", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"firing\",severity=\"info\"}) or vector(0)", "legendFormat": "Info"}]
+      "targets": [{"refId": "A", "datasource": {"type": "loki", "uid": "loki"}, "expr": "count_over_time({from=\"state-history\"} | json | current=\"Alerting\" | severity=\"info\" [2m])", "legendFormat": "Info", "queryType": "instant"}]
     },
     {
-      "id": 7, "type": "stat", "title": "System Status",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "id": 7, "type": "alertlist", "title": "System Status",
       "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1},
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none", "color": {"mode": "thresholds"},
-          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]},
-          "mappings": [{"type": "value", "options": {"0": {"text": "HEALTHY", "color": "green"}, "1": {"text": "DEGRADED", "color": "red"}}}]
-        }, "overrides": []
-      },
-      "options": {"reduceOptions": {"calcs": ["lastNotNull"]}, "orientation": "auto", "textMode": "value", "colorMode": "background"},
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "count(ALERTS{alertstate=\"firing\",severity=\"critical\"}) > 0 or vector(0)", "legendFormat": "Status"}]
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {"firing": true, "pending": false, "noData": false, "normal": false, "error": false},
+        "viewMode": "stat"
+      }
     },
     {
       "id": 10, "type": "row", "title": "Firing Alerts Detail", "collapsed": false,
       "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
     },
     {
-      "id": 11, "type": "table", "title": "Firing Alerts",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "id": 11, "type": "alertlist", "title": "Firing Alerts",
       "gridPos": {"h": 10, "w": 24, "x": 0, "y": 6},
-      "fieldConfig": {
-        "defaults": {"custom": {"displayMode": "auto", "filterable": true}},
-        "overrides": [
-          {"matcher": {"id": "byName", "options": "severity"}, "properties": [{"id": "custom.displayMode", "value": "color-background"}, {"id": "mappings", "value": [{"type": "value", "options": {"critical": {"color": "red", "index": 0}, "warning": {"color": "yellow", "index": 1}, "info": {"color": "blue", "index": 2}}}]}]},
-          {"matcher": {"id": "byName", "options": "Time"}, "properties": [{"id": "custom.hidden", "value": true}]},
-          {"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "custom.hidden", "value": true}]}
-        ]
-      },
-      "options": {"footer": {"show": false}},
-      "transformations": [{"id": "labelsToFields", "options": {"mode": "columns"}}, {"id": "organize", "options": {"excludeByName": {"Time": true, "Value": true, "__name__": true, "alertstate": true}}}],
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "ALERTS{alertstate=\"firing\"}", "format": "table", "instant": true, "legendFormat": ""}]
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {"firing": true, "pending": false, "noData": false, "normal": false, "error": false},
+        "viewMode": "list"
+      }
     },
     {
       "id": 20, "type": "row", "title": "Pending Alerts", "collapsed": false,
       "gridPos": {"h": 1, "w": 24, "x": 0, "y": 16}
     },
     {
-      "id": 21, "type": "table", "title": "Pending Alerts",
-      "datasource": {"type": "prometheus", "uid": "mimir"},
+      "id": 21, "type": "alertlist", "title": "Pending Alerts",
       "gridPos": {"h": 8, "w": 24, "x": 0, "y": 17},
-      "fieldConfig": {
-        "defaults": {"custom": {"displayMode": "auto", "filterable": true}},
-        "overrides": [
-          {"matcher": {"id": "byName", "options": "Time"}, "properties": [{"id": "custom.hidden", "value": true}]},
-          {"matcher": {"id": "byName", "options": "Value"}, "properties": [{"id": "custom.hidden", "value": true}]}
-        ]
-      },
-      "options": {"footer": {"show": false}},
-      "transformations": [{"id": "labelsToFields", "options": {"mode": "columns"}}, {"id": "organize", "options": {"excludeByName": {"Time": true, "Value": true, "__name__": true, "alertstate": true}}}],
-      "targets": [{"refId": "A", "datasource": {"type": "prometheus", "uid": "mimir"}, "expr": "ALERTS{alertstate=\"pending\"}", "format": "table", "instant": true, "legendFormat": ""}]
+      "options": {
+        "alertInstanceLabelFilter": "",
+        "alertName": "",
+        "dashboardAlerts": false,
+        "groupBy": [],
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "stateFilter": {"firing": false, "pending": true, "noData": false, "normal": false, "error": false},
+        "viewMode": "list"
+      }
     },
 
     {
@@ -178,7 +181,7 @@
         {
           "refId": "A",
           "datasource": {"type": "loki", "uid": "loki"},
-          "expr": "sum by (alertname) (count_over_time({grafana_folder=\"Observability\"} | json | current_state = \"Alerting\" [5m]))",
+          "expr": "sum by (alertname) (count_over_time({from=\"state-history\"} | json | current = \"Alerting\" [5m]))",
           "legendFormat": "{{alertname}}",
           "queryType": "range"
         }
@@ -205,7 +208,7 @@
         {
           "refId": "A",
           "datasource": {"type": "loki", "uid": "loki"},
-          "expr": "{grafana_folder=\"Observability\"} | json | line_format \"[{{.current_state}}] {{.ruleTitle}} (was: {{.previous_state}})\"",
+          "expr": "{from=\"state-history\"} | json | line_format \"[{{.current}}] {{.ruleUID}} (was: {{.previous}})\"",
           "queryType": "range"
         }
       ]
