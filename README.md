@@ -85,7 +85,7 @@ Five alert rules are provisioned in `provisioning/alerting/rules.yaml`:
 
 | Alert | Condition | Severity |
 |-------|-----------|----------|
-| High Error Rate | Error rate > 5% for 5 min | critical |
+| High Error Rate | Error rate > 2% for 5 min | critical |
 | High Latency (p99) | p99 > 2s for 5 min | warning |
 | Service Down | No spans for 5 min | critical |
 | Collector Dropping Spans | `otelcol_processor_dropped_spans_total` > 0 for 2 min | warning |
