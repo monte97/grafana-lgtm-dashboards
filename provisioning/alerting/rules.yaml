@@ -64,7 +64,7 @@ groups:
             model:
               expr: >
                 histogram_quantile(0.99,
-                  sum(rate(traces_spanmetrics_latency_bucket{span_kind="SPAN_KIND_SERVER"}[5m])) by (le)
+                  sum(rate(traces_spanmetrics_latency_bucket[5m])) by (service_name, le)
                 )
               refId: A
           - refId: C
@@ -91,7 +91,7 @@ groups:
         for: 5m
         annotations:
           summary: "p99 latency above 2s for 5 minutes"
-          description: "p99 latency is {{ printf \"%.3f\" $values.A.Value }}s"
+          description: "p99 latency for {{ $labels.service_name }} is {{ printf \"%.3f\" $values.A.Value }}s"
         labels:
           severity: warning
 
@@ -165,7 +165,7 @@ groups:
                   type: query
               refId: C
               type: classic_conditions
-        noDataState: NoData
+        noDataState: Alerting
         execErrState: Error
         for: 2m
         annotations:
@@ -206,10 +206,55 @@ groups:
                   type: query
               refId: C
               type: classic_conditions
-        noDataState: NoData
+        noDataState: Alerting
         execErrState: Error
         for: 2m
         annotations:
           summary: "Exporter queue at {{ humanizePercentage $values.A.Value }} capacity"
+        labels:
+          severity: warning
+
+      - uid: high-log-error-rate
+        title: High Log Error Rate
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: loki
+            model:
+              expr: >
+                sum(rate({service_name=~".+"}
+                  | detected_level="error"
+                  [5m]))
+              refId: A
+              queryType: range
+              instant: false
+          - refId: C
+            relativeTimeRange:
+              from: 0
+              to: 0
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A]
+                  reducer:
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Log error rate above 1/s for 5 minutes"
+          description: "{{ printf \"%.2f\" $values.A.Value }} error log entries/s. Check logs in Grafana Explore."
         labels:
           severity: warning
