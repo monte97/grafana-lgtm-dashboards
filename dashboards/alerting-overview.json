@@ -393,7 +393,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "sum by (alertname) (count_over_time({from=\"state-history\"} | json | current = \"Alerting\" [5m]))",
+          "expr": "sum by (ruleUID) (count_over_time({from=\"state-history\"} | json | current = \"Alerting\" [$__range]))",
           "legendFormat": "{{alertname}}",
           "queryType": "range"
         }
