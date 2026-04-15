@@ -38,8 +38,6 @@ State transitions are recorded as structured log entries in Loki (`from="state-h
 | **Firing Alerts** | alertlist (stat) | Count of currently firing rules; turns red when ≥ 1 |
 | **Pending Alerts** | alertlist (stat) | Count of rules in pending state |
 | **Critical** | alertlist (stat) | Firing rules with label `severity=critical` |
-| **Warning** | alertlist (stat) | Firing rules with label `severity=warning` |
-| **Info** | alertlist (stat) | Firing rules with label `severity=info` |
 | **System Status** | alertlist (stat) | Shows `1` when any alert is firing |
 
 All panels use the native Grafana alertlist panel type, which reads directly from Grafana Unified Alerting state — no external metric store required.
@@ -60,8 +58,10 @@ Powered by Loki state history (`GF_UNIFIED_ALERTING_STATE_HISTORY_BACKEND=loki`)
 
 | Panel | Query | Description |
 |-------|-------|-------------|
-| **Alert Firings Over Time** | `{from="state-history"} \| json \| current="Alerting"` | Timeseries of firing transitions per alert |
-| **Recent Alert State Changes** | `{from="state-history"} \| json \| line_format "..."` | Log of all transitions (Normal → Pending → Alerting → Normal) |
+| **Alert Firings Over Time** | `sum by (ruleUID) (count_over_time({from="state-history"} \| json \| current="Alerting" [$__range]))` | Bar chart of firing transitions per rule; grouped by `ruleUID`; window adapts to the selected time range |
+| **Recent Alert State Changes** | `{from="state-history"} \| json \| line_format "[{{.current}}] {{.ruleUID}} (was: {{.previous}})"` | Log of all transitions (Normal → Pending → Alerting → Normal) |
+
+> **Note:** Grafana UA writes to Loki only on state transitions, not continuously. Use a time range of at least 1 hour to see past events. `[$__range]` makes the count window adapt automatically to the dashboard time picker.
 
 > The Alert History panels require `GF_UNIFIED_ALERTING_STATE_HISTORY_BACKEND=loki` and `GF_UNIFIED_ALERTING_STATE_HISTORY_LOKI_REMOTE_URL` set in Grafana's environment (already configured in `docker-compose.yml`).
 
@@ -71,17 +71,22 @@ Powered by Loki state history (`GF_UNIFIED_ALERTING_STATE_HISTORY_BACKEND=loki`)
 
 The following rules are provisioned in `provisioning/alerting/rules.yaml`:
 
-| Rule | Condition | Severity | `for` |
-|------|-----------|----------|-------|
-| **High Error Rate** | Error rate > 2% | critical | 5m |
-| **High Latency p99** | p99 > 2000ms | warning | 5m |
-| **Service Down** | No spans received | critical | 5m |
-| **Collector Dropping Spans** | Dropped spans > 0 | warning | 2m |
-| **Collector Queue High** | Queue > 80% capacity | warning | 2m |
+| Rule | Condition | Severity | `for` | `noDataState` |
+|------|-----------|----------|-------|---------------|
+| **High Error Rate** | Error rate > 2% (all span kinds) | critical | 5m | NoData |
+| **High Latency (p99)** | p99 > 2s, broken down per `service_name` | warning | 5m | NoData |
+| **Service Down** | No SERVER spans received | critical | 5m | Alerting |
+| **Collector Dropping Spans** | Dropped spans > 0 | warning | 2m | Alerting |
+| **Collector Queue High** | Queue > 80% capacity | warning | 2m | Alerting |
+| **High Log Error Rate** | Log error entries > 1/s | warning | 5m | NoData |
 
-> **Note:** **Service Down** uses `noDataState: Alerting` — it fires automatically when no span metrics arrive, without requiring an explicit threshold to be crossed.
+> **Service Down** and the two Collector rules use `noDataState: Alerting` — they fire when metrics stop arriving entirely, not just when a threshold is crossed. This catches cases where the collector itself goes down.
 
-> **Note:** **High Error Rate** counts all span kinds (CLIENT + SERVER). MockMart outbound calls are `SPAN_KIND_CLIENT` — filtering to SERVER only would miss them.
+> **High Error Rate** counts all span kinds (CLIENT + SERVER). MockMart outbound calls are `SPAN_KIND_CLIENT` — filtering to `SPAN_KIND_SERVER` only would miss them.
+
+> **High Latency (p99)** fires one alert instance per service that exceeds 2s. The description includes `{{ $labels.service_name }}` to identify the offending service.
+
+> **High Log Error Rate** uses Loki as datasource with a metric query (`detected_level="error"`). It catches application errors that don't produce span errors (background jobs, startup failures, etc.).
 
 ---
 
