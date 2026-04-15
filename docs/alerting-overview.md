@@ -37,9 +37,9 @@ State transitions are recorded as structured log entries in Loki (`from="state-h
 |-------|------|-------------|
 | **Firing Alerts** | alertlist (stat) | Count of currently firing rules; turns red when ≥ 1 |
 | **Pending Alerts** | alertlist (stat) | Count of rules in pending state |
-| **Critical** | alertlist (stat) | Firing rules with `severity=critical` |
-| **Warning** | alertlist (stat) | Firing rules with `severity=warning` |
-| **Info** | alertlist (stat) | Firing rules with `severity=info` |
+| **Critical** | alertlist (stat) | Firing rules with label `severity=critical` |
+| **Warning** | alertlist (stat) | Firing rules with label `severity=warning` |
+| **Info** | alertlist (stat) | Firing rules with label `severity=info` |
 | **System Status** | alertlist (stat) | Shows `1` when any alert is firing |
 
 All panels use the native Grafana alertlist panel type, which reads directly from Grafana Unified Alerting state — no external metric store required.
