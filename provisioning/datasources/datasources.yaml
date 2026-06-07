@@ -11,6 +11,12 @@ datasources:
       httpMethod: POST
       prometheusType: Mimir
       prometheusVersion: 2.4.0
+      # Salto metrica->traccia: cliccando un exemplar (label traceID, inviato da
+      # Tempo metrics_generator send_exemplars) Grafana apre la trace in Tempo.
+      # Richiede lo storage exemplar abilitato su Mimir (max_global_exemplars_per_user).
+      exemplarTraceIdDestinations:
+        - name: traceID
+          datasourceUid: tempo
     editable: false
 
   - name: Loki
